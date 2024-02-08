@@ -57,7 +57,7 @@ def main():
 
     project.setup_editor(ontology)
 
-    print("Labelbox Project ID: ", project.id)
+    print("Labelbox Project ID: ", project.uid)
 
     return
 
