@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Upload existing prelabels to help with annotation
@@ -24,7 +23,6 @@ import uuid
 import argparse
 
 
-
 LABEL_VALUES_DICT = {
         1: 'Natural',
         2: 'Reservatorios',
@@ -32,7 +30,8 @@ LABEL_VALUES_DICT = {
         4: 'Mineracao'
         }
 
-FILE_SUFFIX = 'mb_2017.tif'
+FILE_SUFFIX = 'mb_wb_2017.tif'
+
 with open('./lb_api_key.txt') as f:
     lines = f.readlines()
     LB_API_KEY = lines[0].rstrip()
@@ -70,7 +69,7 @@ def main():
     global_key_base = args.dataset_name
     label_payloads = []
     for f in prelabel_list:
-        basename = os.path.basename(f).replace(FILE_SUFFIX, '')
+        basename = os.path.basename(f).replace(FILE_SUFFIX, 'rgb.png')
         global_key = global_key_base + basename
         im_ar = np.asarray(Image.open(f))
         annotations = []
@@ -88,7 +87,7 @@ def main():
                     name=LABEL_VALUES_DICT[label],
                     value=lb_types.Mask(
                         mask=mask_data,
-                        color=(255, 0, 0)
+                        color=(255, 255, 255)
                         )
                 )
                 annotations.append(mask_annotation)
@@ -111,3 +110,7 @@ def main():
 
     print(f"Errors: {upload_job.errors}")
     print(f"Status of uploads: {upload_job.statuses}")
+
+
+if __name__ == '__main__':
+    main()

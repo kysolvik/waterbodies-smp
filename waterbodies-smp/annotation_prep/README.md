@@ -67,7 +67,7 @@ Make note of the project ID that is generated, you will need it for the next ste
 Now that we've created a project, we can upload data and prepare it for labeling:
 
 ```
-python3 create_lb_dataset.py <project-id> ./out/s2_10m/
+python3 create_lb_dataset.py <project-id> MyDataset ./out/s2_10m/
 ```
 
 
@@ -76,5 +76,6 @@ python3 create_lb_dataset.py <project-id> ./out/s2_10m/
 If you followed Step C, we can now upload those prelabels to Labelbox
    
 ```
-python3 upload_prelabels.py <project-id> ./out/mb_2017/
+python3 upload_prelabels.py <project-id> MyDataset ./out/mb_wb_2017/
 ```
+

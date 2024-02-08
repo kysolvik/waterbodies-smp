@@ -6,14 +6,12 @@ Usage:
     $ python3 create_lb_dataset.py <project-id> <dataset-name> <image-dir> <gs-storage-path>
 
 Example:
-    $ python3 create_lb_dataset.py <project=id>  MyDemoDataset./out/s2_10m/ \
-            gs://res-id/labelbox_tiles/mb_demo/
+    $ python3 create_lb_dataset.py clsdplamz05ip07ynagk8290v  MyDemoDataset ./out/s2_10m/ gs://res-id/labelbox_tiles/mb_demo/
 
 Note: Assumes you have both rgb and ndwi pngs stored in out/s2_10m/
 
 IMPORTANT: Anything inside the gs-storage-path you specify will be made publically readable!
 """
-
 import labelbox as lb
 import glob
 import os
@@ -70,7 +68,7 @@ def main():
     sp.call(['gcloud', 'storage', 'objects', 'update', '--recursive',
              gs_storage_path,
              '--add-acl-grant=entity=AllUsers,role=READER'])
-    storage_url = "https://storage.googleapis.com/" + gs_storage_path[3:]
+    storage_url = "https://storage.googleapis.com/" + gs_storage_path[5:]
     global_key_base = args.dataset_name
     assets = []
     for f in rgb_list:
@@ -86,17 +84,20 @@ def main():
                 "value": storage_url + ndwi_basename
                              }]
         }
-    assets.append(asset)
+        assets.append(asset)
 
-    dataset.create_data_rows(assets)
+    task = dataset.create_data_rows(assets)
+    task.wait_till_done()
+    print('Data upload errors: ', task.errors)
 
     # Create batch
-    project = lb.get_project(args.project_id)
+    project = client.get_project(args.project_id)
     task = project.create_batches_from_dataset(
-            name=args.dataset_name + " batch",
+            name_prefix=args.dataset_name + " batch-",
             dataset_id=dataset.uid,
             priority=1)
-    print("Result: ", task.result())
+    task.wait_till_done()
+    print("Data queue result: ", task.result())
 
     return
 
