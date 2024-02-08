@@ -7,7 +7,7 @@ For each stage, see the README inside the directory for more information.
 
 ### 1 - waterbodies-smp/ee_export
 
-Readme includes a links to export scripts on Google Earth Engine (Landsat or Sentinel)
+Readme includes links to export scripts on Google Earth Engine (Landsat or Sentinel)
 
 
 ### 2 - waterbodies-smp/annotation_prep
