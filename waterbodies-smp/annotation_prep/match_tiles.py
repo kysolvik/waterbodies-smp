@@ -84,12 +84,16 @@ def main():
     # Read in input dataframe
     grid_df = pd.read_csv(args.grid_indices_latlon)
 
+    if args.output_suffix[0] != '_':
+        output_suffix = '_' + args.output_suffix
+    else:
+        output_suffix = args.output_suffix
     # Create matching arrays
     for row_i in range(grid_df.shape[0]):
         cur_row = grid_df.loc[row_i]
         output_file = '{}/{}.tif'.format(
                 args.output_dir, 
-                cur_row['name'].replace('ndwi', args.output_suffix))
+                cur_row['name'] + output_suffix)
         subset_target(args.target_raster, output_file, cur_row,
                       center_pixels=args.center_pixels_num)
 
