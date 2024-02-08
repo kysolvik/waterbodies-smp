@@ -80,7 +80,7 @@ def main():
                 annotations_exist = True
                 pil_im = Image.fromarray(label_ar)
                 b = io.BytesIO()
-                pil_im.save(b, 'jpeg')
+                pil_im.save(b, 'jpeg', subsampling=0, quality=100)
                 im_bytes = b.getvalue()
                 mask_data = lb.types.MaskData(im_bytes=im_bytes)
                 mask_annotation = lb_types.ObjectAnnotation(
