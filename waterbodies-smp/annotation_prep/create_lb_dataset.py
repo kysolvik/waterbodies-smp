@@ -17,6 +17,7 @@ import glob
 import os
 import argparse
 import subprocess as sp
+import pandas as pd
 
 with open('./lb_api_key.txt') as f:
     lines = f.readlines()
@@ -37,6 +38,9 @@ def argparse_init():
                    type=str)
     p.add_argument('image_dir',
                    help='Path to directory with pngs for annotation',
+                   type=str)
+    p.add_argument('grid_indices_csv',
+                   help='Path to grid_indices csv produced by extract_tiles.py',
                    type=str)
     p.add_argument('gs_storage_path',
                    help='Path to cloud storage directory for images',
@@ -63,26 +67,31 @@ def main():
         gs_storage_path = args.gs_storage_path + '/'
     else:
         gs_storage_path = args.gs_storage_path
-    sp.call(['gsutil', '-m', 'cp', os.path.join(args.image_dir, '*.png'),
-             gs_storage_path])
-    sp.call(['gcloud', 'storage', 'objects', 'update', '--recursive',
-             gs_storage_path,
-             '--add-acl-grant=entity=AllUsers,role=READER'])
+#     sp.call(['gsutil', '-m', 'cp', os.path.join(args.image_dir, '*.png'),
+#              gs_storage_path])
+#     sp.call(['gcloud', 'storage', 'objects', 'update', '--recursive',
+#              gs_storage_path,
+#              '--add-acl-grant=entity=AllUsers,role=READER'])
     storage_url = "https://storage.googleapis.com/" + gs_storage_path[5:]
     global_key_base = args.dataset_name
+    grid_df = pd.read_csv(args.grid_indices_csv)
     assets = []
     for f in rgb_list:
         rgb_basename = os.path.basename(f)
         ndwi_basename = rgb_basename.replace('rgb.png', 'ndwi.png')
+        raw_name = rgb_basename[:-8]
+        gmaps_url = grid_df.loc[grid_df['name']==raw_name, 'gmaps_link'].values[0]
         asset = {
             "row_data": storage_url + rgb_basename,
             "media_type": "IMAGE",
             "global_key": global_key_base + rgb_basename,
 
-            "attachments": [{
-                "type": "IMAGE_OVERLAY",
-                "value": storage_url + ndwi_basename
-                             }]
+            "attachments": [
+                {"type": "IMAGE_OVERLAY",
+                 "value": storage_url + ndwi_basename
+                 },
+                {"type": "RAW_TEXT",
+                 "value": gmaps_url}]
         }
         assets.append(asset)
 
