@@ -14,10 +14,11 @@ ontology_builder = lb.OntologyBuilder(
         classifications=[
             lb.Classification(
                 class_type=lb.Classification.Type.RADIO,
-                name="Contains Water",
+                name="Contains Water/Tem Agua",
+                required=True,
                 options=[
-                    lb.Option(value="no", label="No"),
-                    lb.Option(value="yes", label="Yes")
+                    lb.Option(value="yes", label="Yes/Sim"),
+                    lb.Option(value="no", label="No/Nao")
                     ]
                 )
             ]
