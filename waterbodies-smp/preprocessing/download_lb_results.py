@@ -40,8 +40,8 @@ def argparse_init():
                    help='Path to output directory for saving masks',
                    type=str)
     p.add_argument('--original_dir',
-                   help=('Path to directory with original tifs matching masks. ',
-                         'Optional, if given copies matching tifs to out_dir.')
+                   help=('Path to directory with original tifs matching masks. '
+                         'Optional, if given copies matching tifs to out_dir.'),
                    type=str,
                    default=None)
 
@@ -132,8 +132,8 @@ def main():
     label_values_dict = dict(zip(object_type_names, object_type_vals))
 
     # Download masks
-    for json_row in export_json[:2]:
-        mask_dict = get_object_dict(json_row)
+    for json_row in export_json:
+        mask_dict = get_object_info(json_row, args.project_id)
         if mask_dict['contains_water']:
             full_mask = download_mask(client, mask_dict, label_values_dict)
             mask_name = write_mask(full_mask, args.out_dir, mask_dict)
@@ -141,7 +141,7 @@ def main():
             write_mask(np.zeros(IMAGE_SHAPE, dtype='uint8'), args.out_dir, mask_dict)
             mask_name = write_mask(full_mask, args.out_dir, mask_dict)
         if args.original_dir is not None:
-            copy_original_tif(args.original_dir, args.out_dir, args.out_dir)
+            copy_original_tif(args.original_dir, args.out_dir, mask_name)
 
 if __name__ == '__main__':
     main()
