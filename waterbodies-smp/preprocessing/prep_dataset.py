@@ -29,6 +29,7 @@ random.seed(170)
 # Can change to suit your needs
 BAND_SELECTION = [0, 1, 2, 3]
 
+
 def argparse_init():
     """Prepare ArgumentParser for inputs"""
 
@@ -43,30 +44,6 @@ def argparse_init():
                    type=str)
 
     return p
-
-
-def calc_bands_min_max(input_dir):
-    mask_images = glob.glob(os.path.join(input_dir, '*mask.png'))
-    mask_images.sort()
-    image_patterns = [mi.replace('mask.png', '') for mi in mask_images]
-    band_mins = []
-    band_maxes = []
-
-    for image_base in image_patterns:
-        ar = io.imread('{}og.tif'.format(image_base))
-        img_min = np.min(ar, axis=(0, 1))
-        img_max = np.max(ar, axis=(0, 1))
-        
-        band_mins += [img_min]
-        band_maxes += [img_max]
-
-    all_mins = np.stack(band_mins)
-    all_maxes = np.stack(band_maxes)
-    bands_min_max_all_imgs = np.stack([all_mins, all_maxes], axis=0)
-    np.save('temp_data/bands_min_max.npy', bands_min_max_all_imgs)
-
-    return bands_min_max_all_imgs
-
 
 
 def split_train_test(img_patterns, test_frac, val_frac):
@@ -95,56 +72,46 @@ def split_train_test(img_patterns, test_frac, val_frac):
     else:
         return np.arange(total_ims)
 
-def rescale_to_minmax_uint8(img, bands_min_max):
-    img = np.where(img > bands_min_max[1], bands_min_max[1], img)
-    img  = (255. * (img.astype('float64') - bands_min_max[0]) / (bands_min_max[1] - bands_min_max[0]))
-    img = np.round(img)
-    if img.max()>255:
-        print(img.max())
-        print('Error: overflow')
-    return img.astype(np.uint8)
+
+def calc_all_mean_std(img_list, band_selection):
+    n = 0
+    mean = np.zeros(len(band_selection))
+    sums = np.zeros(len(band_selection))
+    M2 = np.zeros(len(band_selection))
+    for fp_base in img_list:
+        ar = io.imread('{}og.tif'.format(fp_base))[:, :, band_selection]
+        vals = ar.reshape((-1, len(band_selection)))
+        n += vals.shape[0]
+        sums += np.sum(vals, axis=0)
+        delta = vals - mean
+        mean += np.sum(delta/n, axis=0)
+        M2 += np.sum(delta*(vals - mean), axis=0)
+    return np.vstack((sums/n, np.sqrt(M2 / (n - 1))))
+
+def normalize_image(ar, mean_std):
+    return (ar - mean_std[0])/mean_std[1]
+
+def select_bands_write_images(fp_base, out_path, band_selection, mean_std):
+    ar = io.imread('{}og.tif'.format(fp_base))[:, :, band_selection]
+
+    # Mean std scaling
+    ar = normalize_image(ar, mean_std)
+
+    io.imsave(out_path, ar, plugin='pil', compression='tiff_lzw')
+    return
 
 
-def select_bands_write_images(fp_base, out_path, bands_min_max,
-                              band_selection):
-    ar = io.imread('{}og.tif'.format(fp_base))
-
-    ar = rescale_to_minmax_uint8(ar, bands_min_max)[:, :, band_selection]
-
-    io.imsave(out_path, ar)
-
-    return ar.reshape((-1, len(band_selection)))
-
-
-def save_images(img_list, input_dir, output_dir,
-                bands_min_max, band_selection=None, calc_mean_std=False):
+def save_images(img_list, input_dir, output_dir, mean_std, 
+                band_selection=None):
     if band_selection is None:
         band_selection = np.arange(
                 io.imread('{}og.tif'.format(img_list[0])).shape[2]
                 )
-        print(band_selection)
-
-    if calc_mean_std:
-        n = 0
-        mean = np.zeros(len(band_selection))
-        sums = np.zeros(len(band_selection))
-        M2 = np.zeros(len(band_selection))
 
     for fp_base in img_list:
         # out_path is a little tricky, need to remove _ at end and add in .tif
         out_path = fp_base.replace(input_dir, output_dir)[:-1] + '.tif'
-        vals = select_bands_write_images(fp_base, out_path, bands_min_max,
-                                         band_selection)
-        if calc_mean_std:
-            n += vals.shape[0]
-            vals = vals
-            sums += np.sum(vals, axis=0)
-            delta = vals - mean
-            mean += np.sum(delta/n, axis=0)
-            M2 += np.sum(delta*(vals - mean), axis=0)
-
-    if calc_mean_std:
-        return sums/n, np.sqrt(M2 / (n - 1))
+        select_bands_write_images(fp_base, out_path, band_selection, mean_std)
 
 
 def save_masks(ann_list, input_dir, output_dir):
@@ -154,7 +121,7 @@ def save_masks(ann_list, input_dir, output_dir):
 
         # Save
         out_path = fp.replace(input_dir, output_dir).replace('_mask.png', '.tif')
-        io.imsave(out_path, ar)
+        io.imsave(out_path, ar, plugin='pil', compression='tiff_lzw')
 
     return 
 
@@ -188,42 +155,36 @@ def main():
             new_dir = os.path.join(args.out_dir, mid_dir, end_dir)
             Path(new_dir).mkdir(parents=True, exist_ok=True)
 
-    # Calculate mins and maxs of bands for scaling
-    bands_min_max_all_imgs = calc_bands_min_max(args.in_dir)
-    bands_min_max = np.array([np.min(bands_min_max_all_imgs[0], axis=0),
-                              np.percentile(bands_min_max_all_imgs[1], 80, axis=0)])
-
     # Split in train/val/test
     train_names, val_names, test_names = list_and_split_imgs(
             args.in_dir, val_frac=VAL_FRACTION, test_frac=TEST_FRACTION)
 
     # Save train/val/test imgs, and calc mean and std from train for scaling
-    means_std = save_images(
+    mean_std = calc_all_mean_std(train_names, band_selection=BAND_SELECTION)
+    print(mean_std)
+    save_images(
             train_names,
             args.in_dir,
             '{}/img_dir/train/'.format(args.out_dir),
-            bands_min_max,
-            calc_mean_std=True,
+            mean_std=mean_std,
             band_selection=BAND_SELECTION
             )
     save_images(
             test_names,
             args.in_dir,
             '{}/img_dir/test/'.format(args.out_dir),
-            bands_min_max,
-            calc_mean_std=False,
+            mean_std=mean_std,
             band_selection=BAND_SELECTION
             )
     save_images(
             val_names,
             args.in_dir,
             '{}/img_dir/val/'.format(args.out_dir),
-            bands_min_max,
-            calc_mean_std=False,
+            mean_std=mean_std,
             band_selection=BAND_SELECTION
             )
 
-    np.save('./temp_data/mean_std.npy', np.vstack(means_std))
+    np.save('./mean_std.npy', np.vstack(mean_std))
 
     # Save mask images
     save_masks(train_names,
