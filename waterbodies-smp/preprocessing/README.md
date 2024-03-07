@@ -2,6 +2,8 @@
 
 After running annotation_prep and using LabelBox to manually label training examples, the scripts in this folder can be used to download the results and prepare the data for training.
 
+NOTE: Be sure to include your LabelBox API key in this directory in a plain txt file named "lb_api_key.txt"
+
 ### A. Download LabelBox Results (and Get the Matching Original Images)
 
 ```
