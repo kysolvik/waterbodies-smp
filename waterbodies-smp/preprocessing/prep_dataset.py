@@ -26,6 +26,9 @@ from pathlib import Path
 VAL_FRACTION = 0.2
 TEST_FRACTION = 0.2
 random.seed(170)
+# By default, select all 4 bands from original images. (B, G, R, NIR)
+# Can change to suit your needs
+BAND_SELECTION = [0, 1, 2, 3]
 
 def argparse_init():
     """Prepare ArgumentParser for inputs"""
@@ -154,7 +157,6 @@ def save_masks(ann_list, input_dir, output_dir):
     for fp_base in ann_list:
         fp = '{}mask.png'.format(fp_base)
         ar = io.imread(fp)
-        ar[ar > 0] = 1
 
         # Save
         out_path = fp.replace(input_dir, output_dir).replace('_mask.png', '.tif')
@@ -207,21 +209,24 @@ def main():
             args.in_dir,
             '{}/img_dir/train/'.format(args.out_dir),
             bands_min_max,
-            calc_mean_std=True
+            calc_mean_std=True,
+            band_selection=BAND_SELECTION
             )
     save_images(
             test_names,
             args.in_dir,
             '{}/img_dir/test/'.format(args.out_dir),
             bands_min_max,
-            calc_mean_std = False
+            calc_mean_std=False,
+            band_selection=BAND_SELECTION
             )
     save_images(
             val_names,
             args.in_dir,
             '{}/img_dir/val/'.format(args.out_dir),
             bands_min_max,
-            calc_mean_std = False
+            calc_mean_std=False,
+            band_selection=BAND_SELECTION
             )
 
     np.save('./temp_data/mean_std.npy', np.vstack(means_std))
