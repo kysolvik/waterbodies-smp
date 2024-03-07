@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Perform basic preprocessing, train/val/test split, and zip for training
+"""Perform basic preprocessing and train/val/test split
 
 Usage:
-    $ python3 prep_dataset.py <in-dir> <out-dir> --zip_file <zip-file>
+    $ python3 prep_dataset.py <in-dir> <out-dir>
 
 Example:
-    $ python3 prep_dataset.py ./out/labelbox_results/ ./out/prepped_data/ \
-        --zip_file ./prepped.zip
+    $ python3 prep_dataset.py ./out/labelbox_results/ ./out/prepped_data/
 """
 import numpy as np
 import os
@@ -42,11 +41,6 @@ def argparse_init():
     p.add_argument('out_dir',
                    help='Directory for saving outputs',
                    type=str)
-    p.add_argument('--zip_file',
-                   help=('Path for saving zip file (to be uploaded for '
-                         'training on Google Colab).'),
-                   type=str,
-                   default=None)
 
     return p
 
