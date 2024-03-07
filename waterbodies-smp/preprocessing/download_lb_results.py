@@ -18,7 +18,7 @@ import uuid
 import argparse
 from pathlib import Path
 import urllib
-import shutil 
+import shutil
 
 IMAGE_SHAPE = (500, 500)
 
@@ -142,6 +142,7 @@ def main():
             mask_name = write_mask(full_mask, args.out_dir, mask_dict)
         if args.original_dir is not None:
             copy_original_tif(args.original_dir, args.out_dir, mask_name)
+
 
 if __name__ == '__main__':
     main()
