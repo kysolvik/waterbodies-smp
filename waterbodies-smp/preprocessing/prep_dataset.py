@@ -20,6 +20,7 @@ import pandas as pd
 import subprocess as sp
 import argparse
 from pathlib import Path
+import shutil
 
 # Can change if needed
 VAL_FRACTION = 0.2
@@ -237,6 +238,11 @@ def main():
                args.in_dir,
                output_dir=os.path.join(args.out_dir, 'ann_dir', 'val')
                )
+
+    # Zip archive
+    shutil.make_archive('{}.zip'.format(args.out_dir), 'zip', args.out_dir)
+
+    return
 
 
 if __name__ == '__main__':
