@@ -45,7 +45,7 @@ def argparse_init():
     return p
 
 
-def calc_bands_min_max(input_dir):
+def calc_bands_min_max(input_dir, output_dir):
     mask_images = glob.glob(os.path.join(input_dir, '*mask.png'))
     mask_images.sort()
     image_patterns = [mi.replace('mask.png', '') for mi in mask_images]
@@ -63,7 +63,7 @@ def calc_bands_min_max(input_dir):
     all_mins = np.stack(band_mins)
     all_maxes = np.stack(band_maxes)
     bands_min_max_all_imgs = np.stack([all_mins, all_maxes], axis=0)
-    np.save('temp_data/bands_min_max.npy', bands_min_max_all_imgs)
+    np.save(os.path.join(output_dir, 'bands_min_max.npy', bands_min_max_all_imgs)
 
     return bands_min_max_all_imgs
 
@@ -111,7 +111,7 @@ def select_bands_write_images(fp_base, out_path, bands_min_max,
 
     ar = rescale_to_minmax_uint8(ar, bands_min_max)[:, :, band_selection]
 
-    io.imsave(out_path, ar)
+    io.imsave(out_path, ar, plugin='pil', compression='tiff_lzw')
 
     return ar.reshape((-1, len(band_selection)))
 
@@ -154,7 +154,7 @@ def save_masks(ann_list, input_dir, output_dir):
 
         # Save
         out_path = fp.replace(input_dir, output_dir).replace('_mask.png', '.tif')
-        io.imsave(out_path, ar)
+        io.imsave(out_path, ar, plugin='pil', compression='tiff_lzw')
 
     return 
 
@@ -175,9 +175,6 @@ def list_and_split_imgs(input_dir, val_frac, test_frac):
     return train_basename_list, val_basename_list, test_basename_list
 
 def main():
-    # Make temp data dir
-    Path('./temp_data').mkdir(parents=False, exist_ok=True)
-
     # Get commandline args
     parser = argparse_init()
     args = parser.parse_args()
@@ -189,7 +186,9 @@ def main():
             Path(new_dir).mkdir(parents=True, exist_ok=True)
 
     # Calculate mins and maxs of bands for scaling
-    bands_min_max_all_imgs = calc_bands_min_max(args.in_dir)
+    bands_min_max_all_imgs = calc_bands_min_max(args.in_dir, args.out_dir)
+    # Removes top end, since some max values are outliers
+    # Can experiment with different values for this
     bands_min_max = np.array([np.min(bands_min_max_all_imgs[0], axis=0),
                               np.percentile(bands_min_max_all_imgs[1], 80, axis=0)])
 
@@ -201,7 +200,7 @@ def main():
     means_std = save_images(
             train_names,
             args.in_dir,
-            '{}/img_dir/train/'.format(args.out_dir),
+            os.path.join(args.out_dir, 'img_dir', 'train'),
             bands_min_max,
             calc_mean_std=True,
             band_selection=BAND_SELECTION
@@ -209,7 +208,7 @@ def main():
     save_images(
             test_names,
             args.in_dir,
-            '{}/img_dir/test/'.format(args.out_dir),
+            os.path.join(args.out_dir, 'img_dir', 'test'),
             bands_min_max,
             calc_mean_std=False,
             band_selection=BAND_SELECTION
@@ -217,24 +216,27 @@ def main():
     save_images(
             val_names,
             args.in_dir,
-            '{}/img_dir/val/'.format(args.out_dir),
+            os.path.join(args.out_dir, 'img_dir', 'val'),
             bands_min_max,
             calc_mean_std=False,
             band_selection=BAND_SELECTION
             )
 
-    np.save('./temp_data/mean_std.npy', np.vstack(means_std))
+    np.save(os.path.join(args.out_dir, 'mean_std.npy'), np.vstack(means_std))
 
     # Save mask images
     save_masks(train_names,
                args.in_dir,
-               output_dir='{}/ann_dir/train/'.format(args.out_dir))
+               output_dir=os.path.join(args.out_dir, 'ann_dir', 'train')
+               )
     save_masks(test_names,
                args.in_dir,
-               output_dir='{}/ann_dir/test/'.format(args.out_dir))
+               output_dir=os.path.join(args.out_dir, 'ann_dir', 'test')
+               )
     save_masks(val_names,
                args.in_dir,
-               output_dir='{}/ann_dir/val/'.format(args.out_dir))
+               output_dir=os.path.join(args.out_dir, 'ann_dir', 'val')
+               )
 
 
 if __name__ == '__main__':
