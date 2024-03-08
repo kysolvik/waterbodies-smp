@@ -15,9 +15,9 @@ Note: Make sure label_ontology.py has your desired labeling ontology.
 
 import argparse
 import labelbox as lb
-from label_ontology import ontology_builder
+from _label_ontology import ontology_builder
 
-with open('./lb_api_key.txt') as f:
+with open('lb_api_key.txt') as f:
     lines = f.readlines()
     LB_API_KEY = lines[0].rstrip()
 

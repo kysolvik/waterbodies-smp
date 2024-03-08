@@ -19,7 +19,7 @@ import argparse
 import subprocess as sp
 import pandas as pd
 
-with open('./lb_api_key.txt') as f:
+with open('lb_api_key.txt') as f:
     lines = f.readlines()
     LB_API_KEY = lines[0].rstrip()
 
@@ -67,11 +67,11 @@ def main():
         gs_storage_path = args.gs_storage_path + '/'
     else:
         gs_storage_path = args.gs_storage_path
-#     sp.call(['gsutil', '-m', 'cp', os.path.join(args.image_dir, '*.png'),
-#              gs_storage_path])
-#     sp.call(['gcloud', 'storage', 'objects', 'update', '--recursive',
-#              gs_storage_path,
-#              '--add-acl-grant=entity=AllUsers,role=READER'])
+    sp.call(['gsutil', '-m', 'cp', os.path.join(args.image_dir, '*.png'),
+             gs_storage_path])
+    sp.call(['gcloud', 'storage', 'objects', 'update', '--recursive',
+             gs_storage_path,
+             '--add-acl-grant=entity=AllUsers,role=READER'])
     storage_url = "https://storage.googleapis.com/" + gs_storage_path[5:]
     global_key_base = args.dataset_name
     grid_df = pd.read_csv(args.grid_indices_csv)

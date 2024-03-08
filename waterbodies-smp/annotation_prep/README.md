@@ -1,4 +1,6 @@
-# Example Usage:
+# Annotation Prep
+
+## Example Usage:
 
 Note: All Google Cloud Storage file paths need to be updated to match your buckets/filepaths.
 
@@ -52,7 +54,7 @@ pip install labelbox labelbox[data]
 
 Then, generate API key and save it in this directory as a file named "lb_api_key.txt". Follow directions for creating the API key here: https://docs.labelbox.com/reference/create-api-key
 
-Next, edit the file "label_ontology.py" as needed to match the classes you are labeling. For more information, see: https://docs.labelbox.com/reference/ontology
+Next, edit the file "_label_ontology.py" as needed to match the classes you are labeling. For more information, see: https://docs.labelbox.com/reference/ontology
 
 Now you're ready to create your project. Replace "MyProjectName" with your desired name.
 ```

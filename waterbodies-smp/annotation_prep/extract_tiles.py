@@ -14,7 +14,7 @@ Notes:
 """
 
 
-import os.path
+import os
 import argparse
 import numpy as np
 import pandas as pd
@@ -154,8 +154,14 @@ def subset_image(fh, num_subsets, dim_x, dim_y, pad_x, pad_y,
     null_im_mask = np.ones(num_subsets, dtype=bool)
     for snum in range(0, num_subsets):
         # NDWI and RGB images, for annotating
-        subset_ndwi_path = '{}/{}{}_ndwi.png'.format(out_dir, out_prefix, snum)
-        subset_rgb_path = '{}/{}{}_rgb.png'.format(out_dir, out_prefix, snum)
+        subset_ndwi_path = os.path.join(
+                out_dir,
+                '{}{}_ndwi.png'.format(out_prefix, snum)
+                )
+        subset_rgb_path = os.path.join(
+                out_dir,
+                '{}{}_rgb.png'.format(out_prefix, snum)
+                )
 
         read_window = ((sub_xmins[snum], sub_xmaxs[snum]),
                        (sub_ymins[snum], sub_ymaxs[snum]))
@@ -179,14 +185,19 @@ def subset_image(fh, num_subsets, dim_x, dim_y, pad_x, pad_y,
         io.imsave(subset_rgb_path, sub_rgb_im_byte, plugin='pil')
 
         # Original image, for training
-        subset_og_path = '{}/{}{}_og.tif'.format(out_dir, out_prefix, snum)
+        subset_og_path = os.path.join(
+                out_dir,
+                '{}{}_og.tif'.format(out_prefix, snum)
+                )
         sub_og_im = np.moveaxis(fh.read(window=read_window), 0, -1)
 
         io.imsave(subset_og_path, sub_og_im, plugin='tifffile')
 
     # Write grid indices to csv
     grid_indices_df = grid_indices_df.iloc[null_im_mask]
-    write_append_csv(grid_indices_df, '{}/grid_indices.csv'.format(out_dir))
+    write_append_csv(grid_indices_df,
+                     os.path.join(out_dir, 'grid_indices.csv')
+                     )
 
     return
 

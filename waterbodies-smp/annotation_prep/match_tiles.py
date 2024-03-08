@@ -8,6 +8,7 @@ Example:
 
 """
 
+import os
 import argparse
 import pandas as pd
 import subprocess as sp
@@ -91,9 +92,10 @@ def main():
     # Create matching arrays
     for row_i in range(grid_df.shape[0]):
         cur_row = grid_df.loc[row_i]
-        output_file = '{}/{}.tif'.format(
-                args.output_dir, 
-                cur_row['name'] + output_suffix)
+        output_file = os.path.join(
+                args.output_dir,
+                '{}.tif'.format(cur_row['name'] + output_suffix)
+                )
         subset_target(args.target_raster, output_file, cur_row,
                       center_pixels=args.center_pixels_num)
 
