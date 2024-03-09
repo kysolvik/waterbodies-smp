@@ -64,7 +64,7 @@ def calc_bands_min_max(input_dir, output_dir):
     all_mins = np.stack(band_mins)
     all_maxes = np.stack(band_maxes)
     bands_min_max_all_imgs = np.stack([all_mins, all_maxes], axis=0)
-    np.save(os.path.join(output_dir, 'bands_min_max.npy', bands_min_max_all_imgs)
+    np.save(os.path.join(output_dir, 'bands_min_max.npy'), bands_min_max_all_imgs)
 
     return bands_min_max_all_imgs
 
@@ -133,7 +133,10 @@ def save_images(img_list, input_dir, output_dir,
 
     for fp_base in img_list:
         # out_path is a little tricky, need to remove _ at end and add in .tif
-        out_path = fp_base.replace(input_dir, output_dir)[:-1] + '.tif'
+        out_path = os.path.join(
+                output_dir,
+                os.path.basename(fp_base)
+                )[:-1] + '.tif'
         vals = select_bands_write_images(fp_base, out_path, bands_min_max,
                                          band_selection)
         if calc_mean_std:
@@ -154,14 +157,18 @@ def save_masks(ann_list, input_dir, output_dir):
         ar = io.imread(fp)
 
         # Save
-        out_path = fp.replace(input_dir, output_dir).replace('_mask.png', '.tif')
+        out_path = os.path.join(
+                output_dir,
+                os.path.basename(fp)
+                ).replace('_mask.png', '.tif')
         io.imsave(out_path, ar, plugin='pil', compression='tiff_lzw')
 
     return 
 
+
 def list_and_split_imgs(input_dir, val_frac, test_frac):
     # First get list of images
-    mask_images = glob.glob('{}*mask.png'.format(input_dir))
+    mask_images = glob.glob(os.path.join(input_dir, '*mask.png'))
     mask_images.sort()
     image_patterns = np.array([mi.replace('mask.png', '') for mi in mask_images])
 
@@ -174,6 +181,7 @@ def list_and_split_imgs(input_dir, val_frac, test_frac):
     test_basename_list = image_patterns[test_indices]
 
     return train_basename_list, val_basename_list, test_basename_list
+
 
 def main():
     # Get commandline args
@@ -240,7 +248,7 @@ def main():
                )
 
     # Zip archive
-    shutil.make_archive('{}.zip'.format(args.out_dir), 'zip', args.out_dir)
+    shutil.make_archive('{}'.format(args.out_dir.strip(os.sep)), 'zip', args.out_dir)
 
     return
 

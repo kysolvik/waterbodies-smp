@@ -17,5 +17,23 @@ python3 download_lb_results.py <project-id> out/labelbox_results/ --original_dir
 ```
 
 
-### B. Preprocess data for training on LabelBox
+### B. Preprocess data for training on Colab
+
+Next, we'll do some basic preprocessing steps, including calculating the mean and std of the images (for scaling, which helps training) and splitting the data into train/validation/test sets. 
+
+This assumes you ran "download_lb_results.py" with the "--original_dir" option so that all the images and masks are in the same location.
+
+```
+python3 prep_dataset.py out/labelbox_results/ prepped_data/
+```
+
+
+### C. Upload files needed for training on Google Colab
+
+Next we'll upload the files we need to Google Cloud Storage so that we can easily access them on Google Colab. We have to also make them public so we can read them from Colab
+
+```
+gcloud storage cp prepped.zip gs://res-id/cnn/training/
+gcloud storage objects update gs://res-id/cnn/training/prepped_data.zip  --add-acl-grant=entity=AllUsers,role=READER
+```
 
