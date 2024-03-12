@@ -70,6 +70,11 @@ Make note of the project ID that is generated, you will need it for the next ste
 Now that we've created a project, we can upload data and prepare it for labeling:
 
 ```
+python3 create_lb_dataset.py <project-id> <dataset-name> <path-to-tiles> <path-to-grid-indices-csv> <cloud-storage-path-to-upload-data>
+```
+
+For example:
+```
 python3 create_lb_dataset.py clrz3trt6068t0716hir65e5y MapBiomasDemoV2 ./out/s2_10m/ out/s2_10m/grid_indices.csv gs://res-id/labelbox_tiles/mb_demo_v2/
 ```
 
