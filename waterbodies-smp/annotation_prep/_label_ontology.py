@@ -1,6 +1,6 @@
 """Helper module defining labeling ontology for labelbox project
 
-Not meant to be run directly
+Not meant to be run directly.
 """
 import labelbox as lb
 

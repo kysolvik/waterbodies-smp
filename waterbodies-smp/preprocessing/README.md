@@ -4,6 +4,9 @@ After running annotation_prep and using LabelBox to manually label training exam
 
 NOTE: Be sure to include your LabelBox API key in this directory in a plain txt file named "lb_api_key.txt"
 
+
+NOTE 2: Google Cloud Storage paths will need to be updated to match yours.
+
 ### A. Download LabelBox Results (and Get the Matching Original Images)
 
 ```

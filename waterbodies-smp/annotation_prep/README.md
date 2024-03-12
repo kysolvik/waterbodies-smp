@@ -2,7 +2,8 @@
 
 ## Example Usage:
 
-Note: All Google Cloud Storage file paths need to be updated to match your buckets/filepaths.
+*NOTE*: All Google Cloud Storage file paths need to be updated to match your buckets/filepaths.
+
 
 ### A. Create a vrt from a Google Cloud Storage directory:
 
@@ -37,7 +38,7 @@ mkdir -p out/mb_wb_2017/
 python3 match_tiles.py ./out/s2_10m/grid_indices.csv mb_wb_2017.vrt ./out/mb_wb_2017/ mb_wb_2017 --center_pixels_num 500
 ```
 
-*Note: This script can also be used to extract data from another satellite (e.g. Landsat) to match the data saved in step B. For example:*
+*Note: This script can also be used to extract data from another satellite (e.g. Landsat) to match the data saved in step B. This lets you use Sentinel for annotation and then Landsat for the training/prediction. For example:*
 ```
 # Landsat 8
 bash build_input_vrt.sh gs://res-id/ee_exports/landsat8_30m_v2/2017/ ls8_2017.vrt cubic
